@@ -1,0 +1,3 @@
+rootProject.name = 'library-manger'
+include 'library-event-producer'
+include 'library-domain'

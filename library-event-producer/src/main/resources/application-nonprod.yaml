@@ -1,0 +1,24 @@
+
+spring:
+  config:
+    activate:
+      on-profile: nonprod
+  kafka:
+    template:
+      default-topic: library-events
+    producer:
+      bootstrap-servers: localhost:9095,localhost:9096,localhost:9097
+      key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      ssl:
+        trust-store-location: <<TBD>>
+        trust-store-password: password
+        key-store-location: <<TBD>>
+        key-store-password: password
+      properties:
+        acks: all
+        retries: 10
+        retry.backoff.ms: 1000
+        security:
+          protocol: SSL
+        ssl.endpoint.identification.algorithm:

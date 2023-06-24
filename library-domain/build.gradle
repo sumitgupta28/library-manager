@@ -1,0 +1,31 @@
+plugins {
+	id 'java'
+
+}
+
+group = 'com.sgtech'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '11'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+
+	compileOnly 'org.projectlombok:lombok:1.18.8'
+	annotationProcessor 'org.projectlombok:lombok:1.18.8'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
