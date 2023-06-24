@@ -1,12 +1,10 @@
-spring:
-  profiles:
-    active: local
----
+
 spring:
   config:
     activate:
       on-profile: local
   kafka:
+    topic: library-events
     template:
       default-topic: library-events
     producer:

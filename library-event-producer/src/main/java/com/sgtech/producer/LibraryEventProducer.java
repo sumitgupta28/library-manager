@@ -9,13 +9,13 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -24,7 +24,8 @@ import java.util.concurrent.TimeoutException;
 @Slf4j
 public class LibraryEventProducer {
 
-    final String topic = "library-events";
+    @Value("${spring.kafka.topic}")
+    private String topic;
 
     @Autowired
     KafkaTemplate<Integer, String> kafkaTemplate;
@@ -36,41 +37,35 @@ public class LibraryEventProducer {
 
         final Integer key = libraryEvent.getLibraryEventId();
         final String value = objectMapper.writeValueAsString(libraryEvent);
-        ListenableFuture<SendResult<Integer, String>> sendResultListenableFuture = sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
-        sendResultListenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
-            @Override
-            public void onFailure(Throwable ex) {
-                handleFailure(key, value, ex);
-            }
+        var  sendResultListenableFuture = kafkaTemplate.sendDefault(key, value);
+        sendResultListenableFuture.whenComplete((sendResult, throwable) -> {
+            if (throwable != null) {
+                handleFailure(key, value, throwable);
+            } else {
+                handleSuccess(key, value, sendResult);
 
-            @Override
-            public void onSuccess(SendResult<Integer, String> result) {
-                handleSuccess(key, value, result);
             }
         });
 
     }
 
-    public ListenableFuture<SendResult<Integer, String>> sendLibraryEvent_Approach2(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent_Approach2(LibraryEvent libraryEvent) throws JsonProcessingException {
 
         Integer key = libraryEvent.getLibraryEventId();
         String value = objectMapper.writeValueAsString(libraryEvent);
 
         ProducerRecord<Integer, String> producerRecord = buildProducerRecord(key, value, topic);
-        ListenableFuture<SendResult<Integer, String>> listenableFuture = kafkaTemplate.send(producerRecord);
-        listenableFuture.addCallback(new ListenableFutureCallback<SendResult<Integer, String>>() {
-            @Override
-            public void onFailure(Throwable ex) {
-                handleFailure(key, value, ex);
-            }
+        var  sendResultListenableFuture = kafkaTemplate.send(producerRecord);
+        sendResultListenableFuture.whenComplete((sendResult, throwable) -> {
+            if (throwable != null) {
+                handleFailure(key, value, throwable);
+            } else {
+                handleSuccess(key, value, sendResult);
 
-            @Override
-            public void onSuccess(SendResult<Integer, String> result) {
-                handleSuccess(key, value, result);
             }
         });
 
-        return listenableFuture;
+        return sendResultListenableFuture;
     }
 
     private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value, String topic) {

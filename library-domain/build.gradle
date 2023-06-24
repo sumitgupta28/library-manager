@@ -7,7 +7,7 @@ group = 'com.sgtech'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '11'
+	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 configurations {
@@ -22,8 +22,8 @@ repositories {
 
 dependencies {
 
-	compileOnly 'org.projectlombok:lombok:1.18.8'
-	annotationProcessor 'org.projectlombok:lombok:1.18.8'
+	compileOnly 'org.projectlombok:lombok:1.18.26'
+	annotationProcessor 'org.projectlombok:lombok:1.18.26'
 }
 
 tasks.named('test') {
