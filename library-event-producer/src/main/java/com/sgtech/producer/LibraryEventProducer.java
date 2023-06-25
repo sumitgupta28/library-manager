@@ -14,6 +14,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -33,7 +34,7 @@ public class LibraryEventProducer {
     @Autowired
     ObjectMapper objectMapper;
 
-    public void sendLibraryEvent(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public void sendLibraryEventAsync(LibraryEvent libraryEvent) throws JsonProcessingException {
 
         final Integer key = libraryEvent.getLibraryEventId();
         final String value = objectMapper.writeValueAsString(libraryEvent);
@@ -49,28 +50,27 @@ public class LibraryEventProducer {
 
     }
 
-    public CompletableFuture<SendResult<Integer, String>> sendLibraryEvent_Approach2(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public CompletableFuture<SendResult<Integer, String>> sendLibraryEventWithProducerRecord(LibraryEvent libraryEvent) throws JsonProcessingException {
 
         Integer key = libraryEvent.getLibraryEventId();
         String value = objectMapper.writeValueAsString(libraryEvent);
 
-        ProducerRecord<Integer, String> producerRecord = buildProducerRecord(key, value, topic);
-        var  sendResultListenableFuture = kafkaTemplate.send(producerRecord);
-        sendResultListenableFuture.whenComplete((sendResult, throwable) -> {
+        var producerRecord = buildProducerRecord(key, value);
+        var  completableFuture = kafkaTemplate.send(producerRecord);
+        completableFuture.whenComplete((sendResult, throwable) -> {
             if (throwable != null) {
                 handleFailure(key, value, throwable);
             } else {
                 handleSuccess(key, value, sendResult);
-
             }
         });
-
-        return sendResultListenableFuture;
+        return completableFuture;
     }
 
-    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value, String topic) {
-        List<Header> recordHeaders = List.of(new RecordHeader("event-source", "scanner".getBytes()));
-        return new ProducerRecord<>(topic, null, key, value, recordHeaders);
+    private ProducerRecord<Integer, String> buildProducerRecord(Integer key, String value) {
+      List<Header> headers= List.of(new RecordHeader("event-source",
+              "library-scanner-service".getBytes(StandardCharsets.UTF_8)));
+        return new ProducerRecord<>(topic,null, key, value,headers);
     }
 
 

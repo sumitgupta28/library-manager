@@ -1,9 +1,29 @@
 POST WITH-NULL-LIBRARY-EVENT-ID
 ---------------------
+libraryevent-async
+---------------------
 curl -i \
 -d '{"libraryEventId":null,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot","bookAuthor":"Test User"}}' \
 -H "Content-Type: application/json" \
--X POST http://localhost:8080/v1/libraryevent
+-X POST http://localhost:8080/v1/libraryevent-async
+
+---------------------
+libraryevent-sync
+---------------------
+curl -i \
+-d '{"libraryEventId":null,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot","bookAuthor":"Test User"}}' \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/v1/libraryevent-sync
+
+
+---------------------
+libraryevent-async-pr
+---------------------
+curl -i \
+-d '{"libraryEventId":null,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot","bookAuthor":"Test User"}}' \
+-H "Content-Type: application/json" \
+-X POST http://localhost:8080/v1/libraryevent-async-pr
+
 
 PUT WITH ID - 1
 --------------

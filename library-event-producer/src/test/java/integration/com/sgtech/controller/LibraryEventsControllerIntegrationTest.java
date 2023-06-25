@@ -21,6 +21,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.HashMap;
@@ -30,10 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EmbeddedKafka(topics = {"library-events"}, partitions = 3)
-@TestPropertySource(properties = {"spring.kafka.producer.bootstrap-servers=${spring.embedded.kafka.brokers}",
-        "spring.kafka.admin.properties.bootstrap.servers=${spring.embedded.kafka.brokers}"
-        ,"spring.kafka.topic=library-events"
-})
+@TestPropertySource(properties = { "spring.config.location = classpath:/application-int.yaml" })
+@ActiveProfiles( "inttest" )
 public class LibraryEventsControllerIntegrationTest {
 
     @Autowired
@@ -76,7 +75,7 @@ public class LibraryEventsControllerIntegrationTest {
         HttpEntity<LibraryEvent> request = new HttpEntity<>(libraryEvent, headers);
 
         //when
-        ResponseEntity<LibraryEvent> responseEntity = restTemplate.exchange("/v1/libraryevent", HttpMethod.POST, request, LibraryEvent.class);
+        ResponseEntity<LibraryEvent> responseEntity = restTemplate.exchange("/v1/libraryevent-async", HttpMethod.POST, request, LibraryEvent.class);
 
         //then
         assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());

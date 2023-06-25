@@ -24,28 +24,57 @@ public class LibraryEventsController {
     @Autowired
     private LibraryEventProducer libraryEventProducer;
 
-    @PostMapping("/v1/libraryevent")
-    public ResponseEntity<LibraryEvent> postLibraryEvent(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+    @PostMapping({"/v1/libraryevent","/v1/libraryevent-async"})
+    public ResponseEntity<LibraryEvent> postLibraryEventAsync(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
         libraryEvent.setLibraryEventType(LibraryEventType.NEW);
         log.info(" Before Send.....");
-        libraryEventProducer.sendLibraryEvent_Approach2(libraryEvent);
+        libraryEventProducer.sendLibraryEventAsync(libraryEvent);
         log.info(" After Send.....");
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
     }
 
+
+    @PostMapping("/v1/libraryevent-async-pr")
+    public ResponseEntity<LibraryEvent> postLibraryEventAsyncWithPR(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+        libraryEvent.setLibraryEventType(LibraryEventType.NEW);
+        log.info(" Before Send.....");
+        libraryEventProducer.sendLibraryEventWithProducerRecord(libraryEvent);
+        log.info(" After Send.....");
+        return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
+
+
+    @PostMapping("/v1/libraryevent-sync")
+    public ResponseEntity<LibraryEvent> postLibraryEventSynchronous(@RequestBody LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException, TimeoutException {
+        libraryEvent.setLibraryEventType(LibraryEventType.NEW);
+        log.info(" Before Send.....");
+        libraryEventProducer.sendLibraryEventSynchronous(libraryEvent);
+        log.info(" After Send.....");
+        return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
 
     //PUT
     @PutMapping("/v1/libraryevent")
     public ResponseEntity<?> putLibraryEvent(@RequestBody @Valid LibraryEvent libraryEvent) throws JsonProcessingException, ExecutionException, InterruptedException {
 
         log.info("LibraryEvent : {} ", libraryEvent);
-        if (libraryEvent.getLibraryEventId() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the LibraryEventId");
-        }
-
+        ResponseEntity<String> BAD_REQUEST = validateLibraryEvent(libraryEvent);
+        if (BAD_REQUEST != null) return BAD_REQUEST;
+        log.info(" Before Send.....");
         libraryEvent.setLibraryEventType(LibraryEventType.UPDATE);
-        libraryEventProducer.sendLibraryEvent(libraryEvent);
+        libraryEventProducer.sendLibraryEventAsync(libraryEvent);
+        log.info(" After Send.....");
         return ResponseEntity.status(HttpStatus.OK).body(libraryEvent);
+    }
+
+    private ResponseEntity<String> validateLibraryEvent(LibraryEvent libraryEvent) {
+        if (libraryEvent.getLibraryEventId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("LibraryEventId can not be null");
+        }
+        if (null!= libraryEvent.getLibraryEventType() && !libraryEvent.getLibraryEventType().equals(LibraryEventType.NEW)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("LibraryEventType not supported");
+        }
+        return null;
     }
 
 }

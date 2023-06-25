@@ -1,3 +1,4 @@
 rootProject.name = 'library-manger'
 include 'library-domain'
 include 'library-event-producer'
+include 'library-event-consumer'
