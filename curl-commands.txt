@@ -7,6 +7,12 @@ curl -i \
 -H "Content-Type: application/json" \
 -X POST http://localhost:8080/v1/libraryevent-async
 
+curl -i \
+-d '{"libraryEventId": null,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot 2.0","bookAuthor":"Test User"},
+"libraryEventType":"UPDATE"}' \
+-H "Content-Type: application/json" \
+-X PUT http://localhost:8080/v1/libraryevent
+
 ---------------------
 libraryevent-sync
 ---------------------
@@ -52,7 +58,7 @@ curl -i \
 -X PUT http://localhost:8080/v1/libraryevent
 
 curl -i \
--d '{"libraryEventId":2,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot","bookAuthor":"Test User"}}' \
+-d '{"libraryEventId":1,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot 2.x","bookAuthor":"Test User"}}' \
 -H "Content-Type: application/json" \
 -X PUT http://localhost:8080/v1/libraryevent
 
@@ -64,5 +70,9 @@ curl -i \
 -H "Content-Type: application/json" \
 -X PUT http://localhost:8080/v1/libraryevent
 
+curl -i \
+-d '{"libraryEventId":999,"book":{"bookId":456,"bookName":"Kafka Using Spring Boot","bookAuthor":"Test User"}}' \
+-H "Content-Type: application/json" \
+-X PUT http://localhost:8080/v1/libraryevent
 
 ./kafka-topics.sh --create --topic library-events.DLT --replication-factor 1 --partitions 4 --bootstrap-server localhost:9092

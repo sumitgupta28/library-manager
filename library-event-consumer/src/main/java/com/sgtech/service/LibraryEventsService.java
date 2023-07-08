@@ -7,6 +7,7 @@ import com.sgtech.jpa.LibraryEventsRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,21 +23,31 @@ public class LibraryEventsService {
 
     public void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) throws JsonProcessingException {
 
-        var libraryEvent = objectMapper.readValue(consumerRecord.value(), LibraryEvent.class);
-        log.info("libraryEvent : {} ", libraryEvent);
+        try {
+            log.info("processLibraryEvent at consumerRecord.value : {} ", consumerRecord.value());
+            LibraryEvent  libraryEvent = objectMapper.readValue(consumerRecord.value(), LibraryEvent.class);
+            log.info("libraryEvent : {} ", libraryEvent);
+            if(libraryEvent.getLibraryEventId()!=null && ( libraryEvent.getLibraryEventId()==999 )){
+                throw new RecoverableDataAccessException("Temporary Network Issue");
+            }
+            switch (libraryEvent.getLibraryEventType()) {
+                case NEW:
+                    save(libraryEvent);
+                    break;
+                case UPDATE:
+                    //validate the libraryevent
+                    validate(libraryEvent);
+                    save(libraryEvent);
+                    break;
+                default:
+                    log.info("Invalid Library Event Type");
+            }
 
-        switch (libraryEvent.getLibraryEventType()) {
-            case NEW:
-                save(libraryEvent);
-                break;
-            case UPDATE:
-                //validate the libraryevent
-                validate(libraryEvent);
-                save(libraryEvent);
-                break;
-            default:
-                log.info("Invalid Library Event Type");
+        } catch (JsonProcessingException e) {
+            log.info("processLibraryEvent at JsonProcessingException  {} ", e);
+            throw e;
         }
+
 
     }
 
